@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rafaqat.com • Insights Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        margin: 0;
+        font-family: Inter, sans-serif;
+        background: linear-gradient(135deg, #4f46e5, #9333ea, #ec4899);
+        background-size: 150% 150%;
+        animation: gradientMove 12s ease infinite;
+        min-height: 100vh;
+        padding: 40px;
+        color: #fff;
+    }
+    @keyframes gradientMove {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 36px;
+        font-weight: 900;
+        margin-bottom: 40px;
+    }
+
+    .insight-box {
+        background: rgba(255,255,255,0.18);
+        backdrop-filter: blur(16px);
+        padding: 25px;
+        border-radius: 22px;
+        margin-bottom: 20px;
+        border: 1px solid rgba(255,255,255,0.25);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    }
+
+    .insight-title {
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .insight-value {
+        font-size: 32px;
+        font-weight: 900;
+    }
+
+    .list {
+        margin-top: 12px;
+        padding-left: 20px;
+        font-size: 16px;
+        line-height: 1.6;
+    }
+
+</style>
+</head>
+
+<body>
+
+<h1>📊 Rafaqat.com — CRM Insights</h1>
+
+<div class="insight-box">
+    <div class="insight-title">Total Leads</div>
+    <div class="insight-value" id="totalLeads">0</div>
+</div>
+
+<div class="insight-box">
+    <div class="insight-title">Leads by Lead Type</div>
+    <ul class="list" id="typeList"></ul>
+</div>
+
+<div class="insight-box">
+    <div class="insight-title">Leads by Stage</div>
+    <ul class="list" id="stageList"></ul>
+</div>
+
+<!-- FIREBASE & LOGIC -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+/* Firebase Config */
+const firebaseConfig = {
+  apiKey: "AIzaSyC6E2DWPHJZKQWuv6v3Bpyk9tVnkYU8dSk",
+  authDomain: "rafaqat-crm.firebaseapp.com",
+  databaseURL: "https://rafaqat-crm-default-rtdb.firebaseio.com",
+  projectId: "rafaqat-crm",
+  storageBucket: "rafaqat-crm.appspot.com",
+  messagingSenderId: "321407849510",
+  appId: "1:321407849510:web:2200b31b9be0f6a9c1c2e7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+/* DOM Elements */
+const totalLeadsBox = document.getElementById("totalLeads");
+const typeListBox = document.getElementById("typeList");
+const stageListBox = document.getElementById("stageList");
+
+/* Load Data */
+function loadInsights() {
+    const leadsRef = ref(db, "leads");
+
+    onValue(leadsRef, (snapshot) => {
+        const leads = snapshot.val() || {};
+
+        const totalLeads = Object.keys(leads).length;
+        totalLeadsBox.innerText = totalLeads;
+
+        let typeCount = {};
+        let stageCount = {};
+
+        for (let id in leads) {
+            let lead = leads[id];
+
+            let t = lead.leadType || "Unknown";
+            let s = lead.stage || "New";
+
+            typeCount[t] = (typeCount[t] || 0) + 1;
+            stageCount[s] = (stageCount[s] || 0) + 1;
+        }
+
+        renderList(typeListBox, typeCount);
+        renderList(stageListBox, stageCount);
+    });
+}
+
+/* Render Lists */
+function renderList(element, data) {
+    element.innerHTML = "";
+    for (let key in data) {
+        element.innerHTML += `<li>${key}: <b>${data[key]}</b></li>`;
+    }
+}
+
+loadInsights();
+</script>
+
+</body>
+</html>
